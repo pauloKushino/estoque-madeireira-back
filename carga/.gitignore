@@ -1,0 +1,3 @@
+# Dados brutos e log do JMeter: o dashboard HTML ja resume a execucao
+resultados/*.jtl
+resultados/jmeter.log
