@@ -25,6 +25,20 @@ Documentação interativa (Swagger): http://localhost:8080/swagger-ui.html
 
 As migrations (V1–V4) criam as tabelas e carregam dados de exemplo automaticamente.
 
+## Testes
+
+```powershell
+.\mvnw.cmd verify    # testes unitarios + integracao + checagem de cobertura JaCoCo (minimo 90%)
+```
+
+- **Unitários** (JUnit 5 + Mockito): `src/test/.../service` e `src/test/.../validation`
+- **Integração** (`@SpringBootTest` + MockMvc, H2 com as mesmas migrations do Flyway): `src/test/.../integration`
+- Relatório de cobertura: `target/site/jacoco/index.html`
+
+## Teste de carga
+
+Plano do JMeter, como executar, resultados e análise em [`carga/`](carga/README.md).
+
 ## Endpoints principais
 
 | Módulo | Endpoints |
