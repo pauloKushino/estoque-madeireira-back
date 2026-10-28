@@ -8,6 +8,9 @@ import com.pi.estoquemadeireira.entity.Venda;
 import com.pi.estoquemadeireira.repository.ClienteRepository;
 import com.pi.estoquemadeireira.repository.ProdutoRepository;
 import com.pi.estoquemadeireira.repository.VendaRepository;
+import com.pi.estoquemadeireira.dto.ItemVendaRequestDTO;
+import com.pi.estoquemadeireira.dto.VendaRequestDTO;
+import com.pi.estoquemadeireira.service.VendaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +23,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -49,6 +58,9 @@ class VendaIntegrationTest {
 
     @Autowired
     private VendaRepository vendaRepository;
+
+    @Autowired
+    private VendaService vendaService;
 
     private Cliente cliente;
     private Produto tabua;
@@ -217,5 +229,32 @@ class VendaIntegrationTest {
         mockMvc.perform(get("/vendas/{id}", 999_999))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Venda nao encontrada: id 999999"));
+    }
+
+    @Test
+    @DisplayName("Vendas simultaneas dos mesmos produtos debitam todo o estoque, sem baixa perdida nem deadlock")
+    void vendasConcorrentes() throws Exception {
+        int vendas = 8;
+        // Metade das vendas lista os itens em ordem invertida: sem trava ordenada isso gera deadlock
+        List<Callable<Object>> tarefas = IntStream.range(0, vendas)
+                .<Callable<Object>>mapToObj(n -> () -> vendaService.criar(new VendaRequestDTO(cliente.getId(),
+                        n % 2 == 0
+                                ? List.of(new ItemVendaRequestDTO(tabua.getId(), BigDecimal.ONE),
+                                          new ItemVendaRequestDTO(ripa.getId(), BigDecimal.ONE))
+                                : List.of(new ItemVendaRequestDTO(ripa.getId(), BigDecimal.ONE),
+                                          new ItemVendaRequestDTO(tabua.getId(), BigDecimal.ONE)))))
+                .toList();
+
+        ExecutorService pool = Executors.newFixedThreadPool(vendas);
+        try {
+            for (Future<Object> f : pool.invokeAll(tarefas)) {
+                f.get(); // relanca a excecao se alguma venda falhou
+            }
+        } finally {
+            pool.shutdown();
+        }
+
+        assertThat(estoqueNoBanco(tabua)).isEqualByComparingTo("2");
+        assertThat(estoqueNoBanco(ripa)).isEqualByComparingTo("42");
     }
 }

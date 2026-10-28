@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -31,6 +32,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleEntityNotFound(EntityNotFoundException ex,
                                                          HttpServletRequest request) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    // Deadlock ou timeout de lock no banco: conflito temporario, o cliente pode repetir a requisicao
+    @ExceptionHandler(PessimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> handleLockFailure(PessimisticLockingFailureException ex,
+                                                      HttpServletRequest request) {
+        log.warn("Conflito de concorrencia no banco: {}", ex.getMessage());
+        return buildResponse(HttpStatus.CONFLICT,
+                "Outra operacao esta usando os mesmos produtos. Tente novamente.", request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

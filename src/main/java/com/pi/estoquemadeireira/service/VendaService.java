@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class VendaService {
@@ -62,10 +64,15 @@ public class VendaService {
         venda.setClienteId(dto.clienteId());
         venda.setDataVenda(LocalDateTime.now());
 
+        // Trava os produtos antes de ler o saldo, sempre em ordem de id: sem isso vendas simultaneas
+        // sobrescrevem a baixa uma da outra (lost update) e travam em deadlock no INSERT do item.
+        Map<Long, Produto> produtos = new HashMap<>();
+        dto.itens().stream().map(ItemVendaRequestDTO::produtoId).distinct().sorted().forEach(id ->
+                produtos.put(id, produtoRepository.findByIdForUpdate(id)
+                        .orElseThrow(() -> new EntityNotFoundException("Produto nao encontrado: id " + id))));
+
         for (ItemVendaRequestDTO itemDTO : dto.itens()) {
-            Produto produto = produtoRepository.findById(itemDTO.produtoId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Produto nao encontrado: id " + itemDTO.produtoId()));
+            Produto produto = produtos.get(itemDTO.produtoId());
 
             // Regra 1: rejeita a venda INTEIRA se qualquer item nao tiver estoque
             if (itemDTO.quantidade().compareTo(produto.getQuantidadeEstoque()) > 0) {
