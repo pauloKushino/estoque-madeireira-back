@@ -1,5 +1,9 @@
 # Estoque Madeireira — Backend
 
+![CI/CD](https://github.com/pauloKushino/estoque-madeireira-back/actions/workflows/ci-cd.yml/badge.svg)
+![Railway](https://img.shields.io/badge/Railway-Live-brightgreen?logo=railway)
+![Coverage](https://img.shields.io/badge/Coverage-90%25-brightgreen)
+
 API REST para controle de estoque e vendas de uma madeireira, desenvolvida como projeto avaliativo.
 
 ## Stack
@@ -38,6 +42,11 @@ As migrations (V1–V4) criam as tabelas e carregam dados de exemplo automaticam
 ## Teste de carga
 
 Plano do JMeter, como executar, resultados e análise em [`carga/`](carga/README.md).
+
+## Demo
+
+**API Base:** https://estoque-madeireira-back.railway.app
+**Swagger UI:** https://estoque-madeireira-back.railway.app/swagger-ui.html
 
 ## Endpoints principais
 
