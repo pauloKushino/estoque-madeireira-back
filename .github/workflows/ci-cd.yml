@@ -49,7 +49,11 @@ jobs:
           name: jar
           path: target
       - name: Deploy to Railway
+        if: ${{ secrets.RAILWAY_TOKEN != '' }}
         uses: railwayapp/railway-deploy@v1
         with:
           token: ${{ secrets.RAILWAY_TOKEN }}
           service: estoque-madeireira-back
+      - name: Deploy skipped (secret not configured)
+        if: ${{ secrets.RAILWAY_TOKEN == '' }}
+        run: echo "Deploy ignorado: configure RAILWAY_TOKEN nos secrets do repositorio."
