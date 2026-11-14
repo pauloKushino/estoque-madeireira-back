@@ -46,6 +46,8 @@ Plano do JMeter, como executar, resultados e análise em [`carga/`](carga/README
 
 A API ainda não tem deploy público. Para rodar localmente, use `docker compose up -d` e `.\mvnw.cmd spring-boot:run`; o Swagger fica em http://localhost:8080/swagger-ui.html.
 
+Para publicar a API, configure o secret `RAILWAY_TOKEN` e a variável de repositório `DEPLOY_ENABLED=true`.
+
 ## Endpoints principais
 
 | Módulo | Endpoints |
