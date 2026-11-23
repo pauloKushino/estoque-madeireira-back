@@ -3,7 +3,29 @@
 ![CI/CD](https://github.com/pauloKushino/estoque-madeireira-back/actions/workflows/ci-cd.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/Coverage_gate-90%25-brightgreen)
 
-API REST para controle de estoque e vendas de uma madeireira, desenvolvida como projeto avaliativo.
+API REST para controle de estoque e vendas de uma madeireira, desenvolvida no Projeto Integrador de Extensão (PIE IV — Spring Boot + Problema Real) do Centro Universitário Descomplica Uniamérica.
+
+## Projeto
+
+| | |
+|---|---|
+| **Projeto** | Estoque Madeireira |
+| **Demandante** | Castelo de Madeira |
+| **Integrantes** | Felipe Klaus, Erick Mertz, Paulo Kushino e Wendell Klering |
+| **Professora** | Isabel Fernandes |
+| **Frontend** | https://github.com/pauloKushino/estoque-madeireira-front |
+
+### Problema
+
+Na Castelo de Madeira, o saldo de estoque, as vendas e os dados dos clientes ficavam espalhados entre controles manuais, planilhas e comunicação verbal. Isso gera divergência entre o saldo registrado e o que está no pátio, venda de produto sem saldo e dificuldade para saber quais itens estão abaixo do mínimo. Como a madeira é vendida em unidades diferentes (m³, metro linear e unidade), o controle manual fica ainda mais sujeito a erro.
+
+### Solução
+
+Uma API REST em Spring Boot, consumida por uma interface web em Angular, que centraliza:
+
+- **Produtos e estoque**: cadastro com unidade de medida, preço, saldo e estoque mínimo; consulta de saldo por produto e indicador de estoque baixo na interface.
+- **Clientes**: cadastro com validação de CPF/CNPJ e preenchimento automático do endereço pelo CEP (ViaCEP).
+- **Vendas**: registro de venda com vários itens; o estoque é validado e debitado na mesma transação, e a venda inteira é recusada se algum item não tiver saldo.
 
 ## Stack
 
@@ -37,6 +59,11 @@ As migrations (V1–V4) criam as tabelas e carregam dados de exemplo automaticam
 - **Unitários** (JUnit 5 + Mockito): `src/test/.../service` e `src/test/.../validation`
 - **Integração** (`@SpringBootTest` + MockMvc, H2 com as mesmas migrations do Flyway): `src/test/.../integration`
 - Relatório de cobertura: `target/site/jacoco/index.html`
+
+## Documentação e evidências
+
+- Documentação completa (requisitos atendidos e trabalhos futuros, modelo de dados, diagramas e endpoints com exemplos): [`docs/DOCUMENTACAO.md`](docs/DOCUMENTACAO.md)
+- Prints da API (Swagger) e das telas em funcionamento: [`docs/evidencias/`](docs/evidencias/README.md)
 
 ## Teste de carga
 
