@@ -19,3 +19,11 @@ springdoc:
 
 viacep:
   url: https://viacep.com.br
+
+app:
+  jwt:
+    # Chave que assina o token (HS256). Minimo de 32 caracteres.
+    # Em producao SEMPRE defina a variavel de ambiente JWT_SECRET.
+    secret: ${JWT_SECRET:dev-troque-este-segredo-com-pelo-menos-32-caracteres}
+    # Tempo de validade do token, em minutos
+    expiracao-minutos: ${JWT_EXPIRACAO_MINUTOS:120}

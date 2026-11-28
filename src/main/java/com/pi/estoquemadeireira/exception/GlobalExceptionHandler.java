@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,13 @@ public class GlobalExceptionHandler {
         log.warn("Conflito de concorrencia no banco: {}", ex.getMessage());
         return buildResponse(HttpStatus.CONFLICT,
                 "Outra operacao esta usando os mesmos produtos. Tente novamente.", request);
+    }
+
+    // Login com usuario/senha errados (PIC-14). Sem este handler cairia no handleUnexpected (500)
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex,
+                                                         HttpServletRequest request) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
