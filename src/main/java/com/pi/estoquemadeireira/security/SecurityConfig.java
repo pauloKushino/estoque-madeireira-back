@@ -4,8 +4,11 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -29,10 +32,33 @@ public class SecurityConfig {
     static final int TAMANHO_MINIMO_SEGREDO = 32;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthenticationConverter jwtAuthenticationConverter)
+            throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)                      // API REST sem sessao, nao precisa de CSRF
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll()); // TODO PIC-14: regras do login
+                // API REST stateless com token no header -> CSRF nao se aplica
+                .csrf(AbstractHttpConfigurer::disable)
+                // Usa a configuracao de CORS existente (CorsConfig). TODO PIC-16: CORS no SecurityConfig
+                .cors(Customizer.withDefaults())
+                // Sem sessao no servidor: cada requisicao se identifica pelo proprio token
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // ---- publicas (PIC-14; demais rotas publicas no PIC-16) ----
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // preflight do navegador
+
+                        // ---- exigem token (PIC-14) ----
+                        .requestMatchers("/auth/me").authenticated()
+
+                        // ---- por perfil ADMIN/USER: PIC-15 ----
+                        // TODO PIC-15: trocar por authenticated() + regras por perfil
+                        // (junto com o PIC-18, que adapta os testes de integracao existentes)
+                        .anyRequest().permitAll()
+                )
+                // Valida o "Authorization: Bearer <token>" em toda requisicao que o enviar
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+
         return http.build();
     }
 
