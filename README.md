@@ -1,5 +1,8 @@
 # Estoque Madeireira — Backend
 
+![CI/CD](https://github.com/pauloKushino/estoque-madeireira-back/actions/workflows/ci-cd.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/Coverage_gate-90%25-brightgreen)
+
 API REST para controle de estoque e vendas de uma madeireira, desenvolvida como projeto avaliativo.
 
 ## Stack
@@ -38,6 +41,12 @@ As migrations (V1–V4) criam as tabelas e carregam dados de exemplo automaticam
 ## Teste de carga
 
 Plano do JMeter, como executar, resultados e análise em [`carga/`](carga/README.md).
+
+## Demo
+
+A API ainda não tem deploy público. Para rodar localmente, use `docker compose up -d` e `.\mvnw.cmd spring-boot:run`; o Swagger fica em http://localhost:8080/swagger-ui.html.
+
+Para publicar a API, configure o secret `RAILWAY_TOKEN` e a variável de repositório `DEPLOY_ENABLED=true`.
 
 ## Endpoints principais
 
