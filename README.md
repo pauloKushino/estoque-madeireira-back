@@ -26,7 +26,32 @@ docker compose up -d          # sobe o MySQL (banco estoque_madeireira, porta 33
 
 Documentação interativa (Swagger): http://localhost:8080/swagger-ui.html
 
-As migrations (V1–V4) criam as tabelas e carregam dados de exemplo automaticamente.
+As migrations (V1–V5) criam as tabelas e carregam dados de exemplo automaticamente.
+
+## Autenticação (JWT)
+
+A API usa Spring Security com token JWT (HS256). Usuários de teste criados pela migration V5:
+
+| Usuário | Senha | Perfil |
+|---|---|---|
+| `admin` | `admin123` | ADMIN |
+| `user` | `user123` | USER |
+
+1. Faça login para receber o token:
+
+```powershell
+curl.exe -s -X POST http://localhost:8080/auth/login -H "Content-Type: application/json" -d '{\"username\":\"admin\",\"senha\":\"admin123\"}'
+```
+
+Resposta: `{ "token": "...", "expiraEm": 7200, "username": "admin", "nome": "Administrador", "role": "ADMIN" }` (`expiraEm` em segundos).
+
+2. Envie o token no header `Authorization` das próximas requisições:
+
+```powershell
+curl.exe -s http://localhost:8080/auth/me -H "Authorization: Bearer <TOKEN>"
+```
+
+Login errado devolve **401**. Variáveis de ambiente: `JWT_SECRET` (mínimo de 32 caracteres; **obrigatório definir em produção**) e `JWT_EXPIRACAO_MINUTOS` (padrão 120).
 
 ## Testes
 
@@ -52,6 +77,7 @@ Para publicar a API, configure o secret `RAILWAY_TOKEN` e a variável de reposit
 
 | Módulo | Endpoints |
 |---|---|
+| Autenticação | `POST /auth/login` (público), `GET /auth/me` (exige token) |
 | Produtos | `GET/POST /produtos`, `GET/PUT/DELETE /produtos/{id}`, `GET /produtos/{id}/estoque` |
 | Clientes | `GET/POST /clientes`, `GET/PUT/DELETE /clientes/{id}` (com validação de CPF/CNPJ) |
 | Vendas | `GET /vendas`, `GET /vendas/{id}`, `POST /vendas` (baixa de estoque em transação atômica) |
