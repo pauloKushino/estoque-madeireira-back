@@ -106,8 +106,8 @@ class VendaServiceTest {
         Produto tabua = produto(1L, "Tabua", "10", "100.00");
         Produto viga = produto(2L, "Viga", "5.5", "45.90");
         when(clienteRepository.existsById(1L)).thenReturn(true);
-        when(produtoRepository.findById(1L)).thenReturn(Optional.of(tabua));
-        when(produtoRepository.findById(2L)).thenReturn(Optional.of(viga));
+        when(produtoRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(tabua));
+        when(produtoRepository.findByIdForUpdate(2L)).thenReturn(Optional.of(viga));
         when(vendaRepository.save(any(Venda.class))).thenAnswer(inv -> inv.getArgument(0));
 
         VendaRequestDTO dto = new VendaRequestDTO(1L, List.of(
@@ -138,7 +138,7 @@ class VendaServiceTest {
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Cliente nao encontrado: id 99");
 
-        verify(produtoRepository, never()).findById(any());
+        verify(produtoRepository, never()).findByIdForUpdate(any());
         verify(vendaRepository, never()).save(any());
     }
 
@@ -146,7 +146,7 @@ class VendaServiceTest {
     @DisplayName("criar com produto inexistente lanca EntityNotFoundException")
     void criarProdutoInexistente() {
         when(clienteRepository.existsById(1L)).thenReturn(true);
-        when(produtoRepository.findById(50L)).thenReturn(Optional.empty());
+        when(produtoRepository.findByIdForUpdate(50L)).thenReturn(Optional.empty());
         VendaRequestDTO dto = new VendaRequestDTO(1L, List.of(new ItemVendaRequestDTO(50L, BigDecimal.ONE)));
 
         assertThatThrownBy(() -> vendaService.criar(dto))
@@ -161,7 +161,7 @@ class VendaServiceTest {
     void criarEstoqueInsuficiente() {
         Produto tabua = produto(1L, "Tabua", "2", "100.00");
         when(clienteRepository.existsById(1L)).thenReturn(true);
-        when(produtoRepository.findById(1L)).thenReturn(Optional.of(tabua));
+        when(produtoRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(tabua));
         VendaRequestDTO dto = new VendaRequestDTO(1L, List.of(new ItemVendaRequestDTO(1L, new BigDecimal("2.001"))));
 
         assertThatThrownBy(() -> vendaService.criar(dto))
@@ -178,7 +178,7 @@ class VendaServiceTest {
     void criarQuantidadeIgualAoEstoque() {
         Produto tabua = produto(1L, "Tabua", "4", "10.00");
         when(clienteRepository.existsById(1L)).thenReturn(true);
-        when(produtoRepository.findById(1L)).thenReturn(Optional.of(tabua));
+        when(produtoRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(tabua));
         when(vendaRepository.save(any(Venda.class))).thenAnswer(inv -> inv.getArgument(0));
 
         vendaService.criar(new VendaRequestDTO(1L, List.of(new ItemVendaRequestDTO(1L, new BigDecimal("4")))));
